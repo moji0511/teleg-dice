@@ -1,12 +1,20 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import random
+import telebot
+import os
 
-async def dice(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    number = random.randint(1, 6)
-    await update.message.reply_text(f'🎲 عدد تاس: {number}')
+TOKEN = os.getenv("BOT_TOKEN")
+bot = telebot.TeleBot(TOKEN)
 
-app = ApplicationBuilder().token("8448246147:AAFZAD6X052apELfjFBOxU5OjhVyspdUP5M").build()
-app.add_handler(CommandHandler("dice", dice))
+@bot.message_handler(commands=['tas'])
+def send_dice(message):
+    # ارسال استیکر تاس
+    bot.send_dice(message.chat.id, emoji='🎲')
+    
+    # تولید عدد تصادفی بین ۱ تا ۶
+    dice_number = random.randint(1, 6)
+    
+    # ارسال پیام عدد تاس
+    bot.send_message(message.chat.id, f"عدد تاس شما هست: {dice_number}")
 
-app.run_polling()
+# اجرای ربات به صورت polling
+bot.infinity_polling()
