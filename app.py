@@ -3,35 +3,36 @@ import requests
 import random
 import os
 
-TOKEN = os.environ.get("BOT_TOKEN")  # توکن رباتتو اینجا ست کن
-URL = f"https://api.telegram.org/bot{TOKEN}"
-
 app = Flask(__name__)
 
-def send_message(chat_id, text):
-    requests.post(f"{URL}/sendMessage", json={"chat_id": chat_id, "text": text})
+TOKEN = "8206388608:AAFAHSviQ0gyW7dbEmm0JHv6aiJHtDPrrIA"
+TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
 
-def send_dice(chat_id):
-    requests.post(f"{URL}/sendDice", json={"chat_id": chat_id, "emoji": "🎲"})
-
-@app.route("/webhook", methods=["POST"])
+# وبهوک ربات
+@app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.get_json()
+    if not data or "message" not in data:
+        return {"ok": True}
 
-    if "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "")
+    chat_id = data["message"]["chat"]["id"]
+    text = data["message"].get("text", "")
 
-        if "تاس" in text:
-            # اول استیکر تاس رو می‌فرسته
-            send_dice(chat_id)
+    if "تاس" in text:
+        number = random.randint(1, 6)
 
-            # بعد عدد رندوم بین 1 تا 6
-            number = random.randint(1, 6)
-            reply = f"عدد تاس شما هست: {number}\n\nگروه بچه های ایرون @iran9897"
-            send_message(chat_id, reply)
+        # ارسال استیکر تاس (ایموجی 🎲 واقعی تلگرام)
+        requests.post(f"{TELEGRAM_API}/sendDice", json={"chat_id": chat_id})
 
-    return "ok"
+        # ارسال متن نتیجه
+        reply = f"🎲 عدد تاس شما هست: {number}\n\nگروه بچه های ایرون @iran9897"
+        requests.post(f"{TELEGRAM_API}/sendMessage", json={"chat_id": chat_id, "text": reply})
+
+    return {"ok": True}
+
+@app.route('/')
+def home():
+    return "Dice Bot is running!"
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
